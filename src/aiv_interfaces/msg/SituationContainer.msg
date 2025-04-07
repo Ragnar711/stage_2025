@@ -1,0 +1,3 @@
+CauseCode cause_code 
+CauseCode sub_cause_code
+InformationQuality information_quality
