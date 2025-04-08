@@ -1,13 +1,13 @@
-import rclpy
-from rclpy.node import Node
-from std_msgs.msg import Float64, String
+import rclpy  # type: ignore
+from rclpy.node import Node  # type: ignore
+from std_msgs.msg import Float64, String  # type: ignore
+from geometry_msgs.msg import Twist  # type: ignore
 from land_drone.motorDrv import MotorDrv
-from geometry_msgs.msg import Twist
-import socket
 from land_drone.utils.manageFiles import get_name_robot
 
 SEUIL_DISTANCE_OBSTACLE = 100
-# ZERO_SPEED_VALUE = 1500
+ZERO_SPEED_VALUE = 1500
+
 
 class Motor(Node):
     def __init__(self, node_name, hostname, auMotorDrv):
@@ -15,15 +15,16 @@ class Motor(Node):
         self.hostname = hostname
 
         luMsgType = String
-        self.msTopicName = f'{self.hostname}/motor_data' 
+        self.msTopicName = f"{self.hostname}/motor_data"
         self.muPubMotorData = self.create_publisher(luMsgType, self.msTopicName, 10)
 
         self.timer_ = self.create_timer(1.0, self.publish_message)
         self.muMotorDrv = auMotorDrv
         self.state = "Stop"
-        # self.state = "Forward"
 
-        self.get_logger().info('Motor node initialised with the topic : {}'.format(self.msTopicName))
+        self.get_logger().info(
+            "Motor node initialised with the topic : {}".format(self.msTopicName)
+        )
 
         # luMsgType = Twist
         # lsTopicName = f'{self.hostname}/motor_cmd'
@@ -35,10 +36,7 @@ class Motor(Node):
         # )
 
         self.subscription = self.create_subscription(
-            Float64,
-            'sonar_data',
-            self.sonar_data_callback,
-            10
+            Float64, "sonar_data", self.sonar_data_callback, 10
         )
 
     def publish_message(self):
@@ -53,10 +51,12 @@ class Motor(Node):
             self.muMotorDrv.stop()
 
     def publish_state_message(self, state):
-        self.get_logger().info('state motors : {}'.format(self.state))
+        self.get_logger().info("state motors : {}".format(self.state))
         msg = self.create_string_message(state)
         self.muPubMotorData.publish(msg)
-        self.get_logger().info('Message publié sur le topic {}: {}'.format(self.msTopicName, self.state))
+        self.get_logger().info(
+            "Message publié sur le topic {}: {}".format(self.msTopicName, self.state)
+        )
 
     def create_string_message(self, state):
         msg = String()
@@ -76,25 +76,32 @@ class Motor(Node):
 
     def sonar_data_callback(self, msg):
         distance = msg.data
-        self.get_logger().info('Received sonar data: {} cm'.format(distance))
+        self.get_logger().info("Received sonar data: {} cm".format(distance))
 
         if distance > SEUIL_DISTANCE_OBSTACLE:
             self.state = "Forward"
         else:
             self.state = "Stop"
 
+
 def main(args=None):
     rclpy.init(args=args)
 
-    node = Node('motor', allow_undeclared_parameters=True, automatically_declare_parameters_from_overrides=True)
-    
-    hostname = node.get_parameter('hostname').value # get hostname from the launcher
+    node = Node(
+        "motor",
+        allow_undeclared_parameters=True,
+        automatically_declare_parameters_from_overrides=True,
+    )
+
+    hostname = node.get_parameter("hostname").value  # get hostname from the launcher
     if hostname == None:
-        hostname, neighbors = get_name_robot() # get hostname from the function, because the node is running independently without the launcher
+        hostname, _ = (
+            get_name_robot()
+        )  # get hostname from the function, because the node is running independently without the launcher
 
     luMotorDrv = MotorDrv()
-    
-    motor_node = Motor(f'{hostname}_motor', hostname, luMotorDrv)
+
+    motor_node = Motor(f"{hostname}_motor", hostname, luMotorDrv)
     try:
         rclpy.spin(motor_node)
     except KeyboardInterrupt:
@@ -104,6 +111,6 @@ def main(args=None):
         motor_node.destroy_node()
         rclpy.shutdown()
 
-if __name__ == '__main__':
-    main()
 
+if __name__ == "__main__":
+    main()
