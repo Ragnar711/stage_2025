@@ -33,16 +33,16 @@ RUN apt-get update \
 ARG USER
 ARG TOKEN
 
-# Set up stage_2023 workspace
+# Set up stage_2025 workspace
 WORKDIR /home
-RUN  git clone https://USER:${TOKEN}@gitlab.com/robots_mobiles/stage_2023.git 
+RUN  git clone https://${USER}:${TOKEN}@gitlab.com/Ragnar711/stage_2025.git 
 
 # docker build --build-arg USER="gitlab-username" --build-arg TOKEN="your-personal-gitlab-token" -t "name_image"
 
-WORKDIR /home/stage_2023
-# build the stage_2023 workspace
+WORKDIR /home/stage_2025
+# build the stage_2025 workspace
 RUN source /opt/ros/${ROS_DISTRO}/setup.bash \
         && colcon build --symlink-install
 
 # write source commands to .bashrc -> no need to source afterwards
-RUN echo "source /home/stage_2023/install/setup.bash" >> ~/.bashrc
+RUN echo "source /home/stage_2025/install/setup.bash" >> ~/.bashrc
