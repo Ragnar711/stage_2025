@@ -1,0 +1,10 @@
+#Goal
+float64[] goal_position
+---
+#Result
+float64[] final_position
+---
+#Feedback
+float64[] current_position
+#Distance
+float64 distance
