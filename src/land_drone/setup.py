@@ -30,7 +30,7 @@ setup(
             "gyro = land_drone.gyro:main",
             "sensors = land_drone.sensors:main",
             "demarrage = land_drone.demarrage:main",
-            "drone1_position_control = land_drone.drone1_position_control:main",
+            "position_control = land_drone.position_control:main",
             "planner_action_client = land_drone.planner_action_client:main",
             "planner_action_server = land_drone.planner_action_server:main",
             "position_control = land_drone.position_control:main",
