@@ -1,8 +1,9 @@
-import rclpy
-from land_drone.sonar import Sonar  
+import rclpy  # type: ignore
+from land_drone.sonar import Sonar
 from land_drone.sonarDrv import SonarDrv
-from land_drone.gps import GPS  
+from land_drone.gps import GPS
 from land_drone.GPSDrv import GPSDrv
+
 
 def test_gps():
     rclpy.init()
@@ -14,6 +15,7 @@ def test_gps():
     finally:
         gps_test_node.destroy_node()
         rclpy.shutdown()
+
 
 def test_sonar():
     rclpy.init()
@@ -27,9 +29,10 @@ def test_sonar():
         rclpy.shutdown()
 
 
-def main(args=None):
+def main():
     test_sonar()
     test_gps()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
