@@ -33,7 +33,6 @@ setup(
             "position_control = land_drone.position_control:main",
             "planner_action_client = land_drone.planner_action_client:main",
             "planner_action_server = land_drone.planner_action_server:main",
-            "position_control = land_drone.position_control:main",
         ],
     },
 )
