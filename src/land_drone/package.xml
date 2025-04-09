@@ -3,9 +3,9 @@
 <package format="3">
   <name>land_drone</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>This package contains the land drone project.</description>
   <maintainer email="azizbechaib711@gmail.com">drone</maintainer>
-  <license>TODO: License declaration</license>
+  <license>MIT</license>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
 
