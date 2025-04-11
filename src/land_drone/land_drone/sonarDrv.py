@@ -3,19 +3,16 @@ import RPi.GPIO as GPIO  # type: ignore # Importe le module RPi.GPIO pour accéd
 
 
 class SonarDrv:
-    TRIG_PIN = 5
-    ECHO_PIN = 6
+    TRIG_PIN = 6
+    ECHO_PIN = 5
 
     def __init__(self, anTrigPin, anEchoPin):
         self.mnTrigPin = anTrigPin  # Définit le numéro de broche GPIO pour la broche de déclenchement du capteur sonar
         self.mnEchoPin = anEchoPin  # Définit le numéro de broche GPIO pour la broche d'écho du capteur sonar
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(
-            self.mnTrigPin, GPIO.OUT
-        )  # Configure la broche de déclenchement en tant que broche de sortie
-        GPIO.setup(
-            self.mnEchoPin, GPIO.IN
-        )  # Configure la broche d'écho en tant que broche d'entrée
+        GPIO.setmode(GPIO.BCM)  # Utilisation du mode BCM pour les numéros GPIO (plus flexible)
+        GPIO.setup(self.mnTrigPin, GPIO.OUT)  # Configure la broche de déclenchement en tant que broche de sortie
+        GPIO.setup(self.mnEchoPin, GPIO.IN)  # Configure la broche d'écho en tant que broche d'entrée
+
 
     def get_distance(self):
         GPIO.output(

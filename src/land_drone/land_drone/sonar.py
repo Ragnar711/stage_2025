@@ -62,8 +62,8 @@ def main(args=None):
             get_name_robot()
         )  # get hostname from the function, because the node is running independently without the launcher
 
-    # luSonarDrv = SonarDrv(SonarDrv.TRIG_PIN, SonarDrv.ECHO_PIN)
-    luSonarDrv = SonarDrv()
+    luSonarDrv = SonarDrv(SonarDrv.TRIG_PIN, SonarDrv.ECHO_PIN)
+    # luSonarDrv = SonarDrv()
 
     sonar_node = Sonar(f"{hostname}_sonar", hostname, luSonarDrv)
     rclpy.spin(sonar_node)
