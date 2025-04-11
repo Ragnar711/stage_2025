@@ -33,7 +33,7 @@ RUN apt-get update \
         python3-rpi.gpio \ 
         && pip3 install adafruit-circuitpython-mcp4725 mpu6050-raspberrypi 
 
-# Set up stage_2023 workspace
+# Set up stage_2025 workspace
 WORKDIR /home
 
 RUN  git clone https://gitlab.com/land_drone/stage_2025.git 
@@ -41,7 +41,7 @@ RUN  git clone https://gitlab.com/land_drone/stage_2025.git
 # docker build --build-arg USER="gitlab-username" --build-arg TOKEN="your-personal-gitlab-token" -t "name_image"
 
 WORKDIR /home/stage_2025
-# build the stage_2023 workspace
+# build the stage_2025 workspace
 RUN source /opt/ros/${ROS_DISTRO}/setup.bash \
         && colcon build --symlink-install
 

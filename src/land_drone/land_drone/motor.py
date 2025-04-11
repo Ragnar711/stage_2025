@@ -5,9 +5,7 @@ from geometry_msgs.msg import Twist  # type: ignore
 from land_drone.motorDrv import MotorDrv
 from land_drone.utils.manageFiles import get_name_robot
 
-SEUIL_DISTANCE_OBSTACLE = 100
-ZERO_SPEED_VALUE = 1500
-
+# ZERO_SPEED_VALUE = 1500
 
 class Motor(Node):
     def __init__(self, node_name, hostname, auMotorDrv):
@@ -36,7 +34,7 @@ class Motor(Node):
         # )
 
         self.subscription = self.create_subscription(
-            Float64, "sonar_data", self.sonar_data_callback, 10
+            String, "motor_cmd", self.update_state, 10
         )
 
     def publish_message(self):
@@ -62,6 +60,9 @@ class Motor(Node):
         msg = String()
         msg.data = self.state
         return msg
+    
+    def update_state(self, state):
+        self.state = state.data
 
     # def motor_cmd_callback(self, msg):
     #     lfSpeedValue = msg.linear.x
@@ -73,16 +74,6 @@ class Motor(Node):
     #         self.state = "Backward"
     #     else:
     #         self.state = "Stop"
-
-    def sonar_data_callback(self, msg):
-        distance = msg.data
-        self.get_logger().info("Received sonar data: {} cm".format(distance))
-
-        if distance > SEUIL_DISTANCE_OBSTACLE:
-            self.state = "Forward"
-        else:
-            self.state = "Stop"
-
 
 def main(args=None):
     rclpy.init(args=args)

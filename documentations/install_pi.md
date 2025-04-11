@@ -34,16 +34,16 @@ To know the ip of the robot: `ip a`
 ## Copy Dockerfile
 
 
-- Create a folder *stage_2023* in Documents: `mkdir stage_2023`
+- Create a folder *stage_2025* in Documents: `mkdir stage_2025`
 - Open Folders with the GUI Application
     - Other locations
     - `sftp://ip_adress/`
-- Copy the Dockerfile on the folder *stage_2023* 
+- Copy the Dockerfile on the folder *stage_2025* 
 
 ## Build and Run the container
 
 In the raspberry (via ssh): 
-- `cd Documents\stage_2023`
-- `docker build --build-arg USER="gitlab-username" --build-arg TOKEN="your-personal-gitlab-token" -t "name_image"` .
+- `cd Documents\stage_2025`
+- `docker build -t "name_image"` .
 - `docker run -it --privileged --network="host" --name "name_container" "name_image"`
 - To run bash terminal of the container in an other tab terminal: `docker exec -it "name_container" bash`
