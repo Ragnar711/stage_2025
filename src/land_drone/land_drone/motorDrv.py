@@ -1,6 +1,6 @@
 class MotorDrv:
     def __init__(self, driver_type="pitop"):
-        # Select which implementation to use
+        # Select which implementation to use based on driver_type
         if driver_type == "rover":
             from .utils.motor_handlers.rover_handler import RoverHandler
 

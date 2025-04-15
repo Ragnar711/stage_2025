@@ -1,71 +1,93 @@
 import rclpy  # type: ignore
 from rclpy.node import Node  # type: ignore
-from std_msgs.msg import String, Float64  # type: ignore # This imports the Float64 message type
-
-# from aiv_interfaces.msg import CPM  # Commented out CPM import
+from std_msgs.msg import String, Float64  # type: ignore
 from land_drone.utils.manageFiles import get_name_robot
 
-SEUIL_DISTANCE_OBSTACLE = 50
+# Define the distance (in cm) below which the drone should stop.
+# Tune based on sensor accuracy, braking distance, and desired safety margin.
+SEUIL_DISTANCE_OBSTACLE = 50  # Example: stop if obstacle is within 40cm
 
 
 class DronePositionControl(Node):
     def __init__(self, hostname):
-        super().__init__("drone1_position_control")
+        # Node name includes hostname for uniqueness
+        super().__init__(f"{hostname}_position_control")
 
         self.hostname = hostname
+        # Define topic names based on hostname and standard conventions
         self.sonar_topic = f"{self.hostname}/sonar_data"
-
-        self.subscription = self.create_subscription(
-            Float64, self.sonar_topic, self.sonar_callback, 10
+        self.motor_command_topic = (
+            "motor_cmd"  # Topic to send commands to the motor node
         )
 
-        self.publisher = self.create_publisher(String, "motor_cmd", 10)
+        # Subscribe to sonar distance data
+        self.subscription = self.create_subscription(
+            Float64, self.sonar_topic, self.sonar_callback, 10  # QoS depth
+        )
 
-        # self.publisher = self.create_publisher(CPM, 'cpm', 10)  # Commented out CPM publisher
-        self.state = "Stop"
-        self.distance = 0.0
+        # Publish motor commands ('Forward', 'Stop', 'Backward')
+        self.publisher = self.create_publisher(
+            String, self.motor_command_topic, 10  # QoS depth
+        )
 
-        self.get_logger().info("Nœud drone1_position_control initialisé")
+        # Track the last command sent to avoid redundant publications
+        self._last_command_sent = None
+
+        self.get_logger().info(
+            f"Node '{self.get_name()}' initialized. Listening to '{self.sonar_topic}', publishing to '{self.motor_command_topic}'. Obstacle threshold: {SEUIL_DISTANCE_OBSTACLE} cm."
+        )
 
     def sonar_callback(self, msg):
+        """
+        Processes incoming sonar distance data and decides the motor command.
+        """
         distance = msg.data
-        self.distance = distance
+        # self.get_logger().debug(f"Received sonar data: {distance:.2f} cm") # Optional debug log
 
-        self.get_logger().info("Received sonar data: {} cm".format(distance))
-
+        # Determine desired motor state based on distance
+        desired_state = "Stop"  # Default to Stop for safety
         if distance > SEUIL_DISTANCE_OBSTACLE:
-            self.state = "Forward"
-        else:
-            self.state = "Stop"
+            desired_state = "Forward"
+        # Handle threshold
+        elif distance <= SEUIL_DISTANCE_OBSTACLE:
+            desired_state = "Stop"
 
-        self.publish_sonar_data(self.state)
+        # Only publish the command if it's different from the last one sent
+        if desired_state != self._last_command_sent:
+            self.publish_motor_command(desired_state)
+            self._last_command_sent = desired_state
+        # else:
+        #     self.get_logger().debug(f"Desired state '{desired_state}' is same as last sent. No publish.")
 
-        # cpm_msg = self.create_cpm_message(distance)  # Commented out CPM message creation
-        # self.publish_cpm_message(cpm_msg)  # Commented out CPM message publishing
-
-    def publish_sonar_data(self, state):
+    def publish_motor_command(self, state):
+        """Publishes the given state ('Forward', 'Stop', etc.) to the motor command topic."""
         msg = String()
         msg.data = state
-
-        # Publish the message
         self.publisher.publish(msg)
-        self.get_logger().info(f"Published sonar data: {msg.data}")
-
-    # def run_sonar_node(self):
-    #     rclpy.spin(self.sonar_node)
+        self.get_logger().info(f"Published motor command: {state}")
 
 
 def main(args=None):
     rclpy.init(args=args)
 
     hostname, _ = get_name_robot()
+    if hostname is None or hostname == "":
+        print("ERROR: Could not determine hostname for DronePositionControl.")
+        rclpy.shutdown()
+        return
 
     drone_position_control = DronePositionControl(hostname)
 
-    rclpy.spin(drone_position_control)
-
-    drone_position_control.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(drone_position_control)
+    except KeyboardInterrupt:
+        drone_position_control.get_logger().info(
+            "Keyboard interrupt received, shutting down position control."
+        )
+    finally:
+        # Cleanly destroy node upon exit
+        drone_position_control.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == "__main__":

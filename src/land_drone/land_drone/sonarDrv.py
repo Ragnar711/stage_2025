@@ -1,49 +1,75 @@
-import time  # Importe le module time pour les opérations liées au temps
-import RPi.GPIO as GPIO  # type: ignore # Importe le module RPi.GPIO pour accéder aux broches GPIO du Raspberry Pi
+import time
+import RPi.GPIO as GPIO  # type: ignore
 
 
 class SonarDrv:
+    # Define GPIO pins for Sonar sensor
     TRIG_PIN = 6
     ECHO_PIN = 5
 
     def __init__(self, anTrigPin, anEchoPin):
-        self.mnTrigPin = anTrigPin  # Définit le numéro de broche GPIO pour la broche de déclenchement du capteur sonar
-        self.mnEchoPin = anEchoPin  # Définit le numéro de broche GPIO pour la broche d'écho du capteur sonar
-        GPIO.setmode(
-            GPIO.BCM
-        )  # Utilisation du mode BCM pour les numéros GPIO (plus flexible)
-        GPIO.setup(
-            self.mnTrigPin, GPIO.OUT
-        )  # Configure la broche de déclenchement en tant que broche de sortie
-        GPIO.setup(
-            self.mnEchoPin, GPIO.IN
-        )  # Configure la broche d'écho en tant que broche d'entrée
+        self.mnTrigPin = anTrigPin  # GPIO pin for trigger pulse
+        self.mnEchoPin = anEchoPin  # GPIO pin for echo pulse receive
+        GPIO.setmode(GPIO.BCM)  # Use Broadcom pin numbering
+        GPIO.setup(self.mnTrigPin, GPIO.OUT)
+        GPIO.setup(self.mnEchoPin, GPIO.IN)
+
+        # Allow sensor to stabilize once during initialization
+        print("Waiting for sensor to stabilize (initialization)...")
+        GPIO.output(self.mnTrigPin, False)
+        # Reduced stabilization time - adjust if necessary
+        time.sleep(0.5)
+        print("Sensor stabilized.")
 
     def get_distance(self):
-        GPIO.output(self.mnTrigPin, False)  # Set the TRIG pin to LOW
-        print("Waiting for sensor to stabilize")
-        time.sleep(2)  # Wait for the sensor to stabilize
+        """
+        Triggers the sonar sensor and reads the echo to calculate distance.
+        Returns distance in cm or 51.0 on error/timeout.
+        """
+        # Ensure TRIG is low before starting pulse
+        GPIO.output(self.mnTrigPin, False)
+        time.sleep(0.01)
 
-        GPIO.output(self.mnTrigPin, True)  # Send a pulse to trigger the sensor
-        time.sleep(0.00001)  # Wait for a very short time
-        GPIO.output(self.mnTrigPin, False)  # Set the TRIG pin back to LOW
+        # Send 10 microsecond trigger pulse
+        GPIO.output(self.mnTrigPin, True)
+        time.sleep(0.00001)
+        GPIO.output(self.mnTrigPin, False)
 
-        pulse_start = pulse_end = 0  # Initialize variables
+        pulse_start = time.time()
+        pulse_end = pulse_start
+        timeout_start = time.time()
 
-        while GPIO.input(self.mnEchoPin) == 0:  # Wait for the echo pin to go HIGH
-            pulse_start = time.time()  # Record the start time if it transitions to HIGH
+        # Wait for the echo pin to go HIGH (with timeout)
+        while GPIO.input(self.mnEchoPin) == 0:
+            pulse_start = time.time()
+            if pulse_start - timeout_start > 0.1:  # Timeout after 0.1 seconds
+                print("Error: Timeout waiting for echo pulse start.")
+                return 51.0  # Return error/max distance
 
-        while GPIO.input(self.mnEchoPin) == 1:  # Wait for the echo pin to go LOW
-            pulse_end = time.time()  # Record the end time when it goes LOW
+        timeout_start = time.time()  # Reset timeout timer
+        # Wait for the echo pin to go LOW (with timeout)
+        while GPIO.input(self.mnEchoPin) == 1:
+            pulse_end = time.time()
+            # Timeout if pulse is unreasonably long (e.g., > 0.1s implies > 17m distance)
+            if pulse_end - pulse_start > 0.1:
+                print("Error: Timeout waiting for echo pulse end (pulse too long).")
+                return 51.0  # Return error/max distance
+            # General timeout waiting for pin to go low
+            if pulse_end - timeout_start > 0.1:
+                print("Error: Timeout waiting for echo pulse end.")
+                return 51.0  # Return error/max distance
 
-        if (
-            pulse_start and pulse_end
-        ):  # Ensure both pulse_start and pulse_end have been set
-            pulse_duration = pulse_end - pulse_start  # Calculate pulse duration
-            distance = pulse_duration * 17150  # Calculate distance
-            distance = round(distance, 2)  # Round the distance to 2 decimal places
-            print(f"Distance: {distance} cm")  # Print the measured distance
-            return distance
-        else:
-            print("Error: Echo signal not received properly.")
-            return 51.0  # Return 51 if the echo signal was not detected properly
+        # Calculate duration and distance
+        pulse_duration = pulse_end - pulse_start
+        # Speed of sound is approx 34300 cm/s.
+        # Distance = (duration * speed_of_sound) / 2 (round trip)
+        distance = (pulse_duration * 34300) / 2
+        distance = round(distance, 2)
+
+        # Basic bounds check for typical HC-SR04 sensor range
+        if distance < 2:  # Min reliable distance ~2cm
+            return 2.0
+        elif distance > 400:  # Max reliable distance ~400cm
+            return 51.0  # Use the error value for out of range
+
+        return distance
