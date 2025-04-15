@@ -1,30 +1,30 @@
-import busio  # type: ignore
-import adafruit_mcp4725  # type: ignore
-import board  # type: ignore
+from time import sleep
+
+from utils.motor_lib.encoder_motor import EncoderMotor
+from utils.motor_lib.parameters import BrakingType, Direction
 
 
 class MotorDrv:
-    i2c = busio.I2C(board.SCL, board.SDA)
-    motor1 = adafruit_mcp4725.MCP4725(i2c, address=0x60)
-    motor2 = adafruit_mcp4725.MCP4725(i2c, address=0x61)
-
     def __init__(self):
-        pass
+        self.motor1 = EncoderMotor("M0", Direction.BACK)
+        self.motor2 = EncoderMotor("M3", Direction.BACK)
+
+        self.rpm_speed = 100
 
     def go_forward(self):
-        MotorDrv.motor1.value = int((4.0 / 0.33) * 4095)
-        MotorDrv.motor2.value = int((4.0 / 0.33) * 4095)
+        self.motor1.set_target_rpm(self.rpm_speed)
+        self.motor2.set_target_rpm(-self.rpm_speed)
         state = "Forward"
         return state
 
     def go_backward(self):
-        MotorDrv.motor1.value = int((1.0 / 0.33) * 4095)
-        MotorDrv.motor2.value = int((1.0 / 0.33) * 4095)
+        self.motor1.set_target_rpm(-self.rpm_speed)
+        self.motor2.set_target_rpm(self.rpm_speed)
         state = "Backward"
         return state
 
     def stop(self):
-        MotorDrv.motor1.value = int((2.5 / 0.33) * 4095)
-        MotorDrv.motor2.value = int((2.5 / 0.33) * 4095)
+        self.motor1.stop()
+        self.motor2.stop()
         state = "Stop"
         return state
