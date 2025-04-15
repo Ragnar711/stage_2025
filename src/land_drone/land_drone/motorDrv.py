@@ -1,30 +1,20 @@
-from time import sleep
-
-from .utils.motor_lib.encoder_motor import EncoderMotor
-from .utils.motor_lib.parameters import BrakingType, Direction
-
-
 class MotorDrv:
-    def __init__(self):
-        self.motor1 = EncoderMotor("M0", Direction.BACK)
-        self.motor2 = EncoderMotor("M3", Direction.BACK)
+    def __init__(self, driver_type="pitop"):
+        # Select which implementation to use
+        if driver_type == "rover":
+            from .utils.motor_handlers.rover_handler import RoverHandler
 
-        self.rpm_speed = 100
+            self.handler = RoverHandler()
+        else:  # Default to pitop
+            from .utils.motor_handlers.pitop_handler import PitopHandler
+
+            self.handler = PitopHandler()
 
     def go_forward(self):
-        self.motor1.set_target_rpm(self.rpm_speed)
-        self.motor2.set_target_rpm(-self.rpm_speed)
-        state = "Forward"
-        return state
+        return self.handler.go_forward()
 
     def go_backward(self):
-        self.motor1.set_target_rpm(-self.rpm_speed)
-        self.motor2.set_target_rpm(self.rpm_speed)
-        state = "Backward"
-        return state
+        return self.handler.go_backward()
 
     def stop(self):
-        self.motor1.stop()
-        self.motor2.stop()
-        state = "Stop"
-        return state
+        return self.handler.stop()

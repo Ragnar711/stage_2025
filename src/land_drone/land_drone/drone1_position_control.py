@@ -42,10 +42,10 @@ class DronePositionControl(Node):
 
         # cpm_msg = self.create_cpm_message(distance)  # Commented out CPM message creation
         # self.publish_cpm_message(cpm_msg)  # Commented out CPM message publishing
-        
+
     def publish_sonar_data(self, state):
         msg = String()
-        msg.data = state 
+        msg.data = state
 
         # Publish the message
         self.publisher.publish(msg)

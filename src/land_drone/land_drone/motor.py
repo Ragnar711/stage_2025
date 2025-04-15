@@ -7,6 +7,7 @@ from land_drone.utils.manageFiles import get_name_robot
 
 # ZERO_SPEED_VALUE = 1500
 
+
 class Motor(Node):
     def __init__(self, node_name, hostname, auMotorDrv):
         super().__init__(node_name)
@@ -60,7 +61,7 @@ class Motor(Node):
         msg = String()
         msg.data = self.state
         return msg
-    
+
     def update_state(self, state):
         self.state = state.data
 
@@ -74,6 +75,7 @@ class Motor(Node):
     #         self.state = "Backward"
     #     else:
     #         self.state = "Stop"
+
 
 def main(args=None):
     rclpy.init(args=args)
