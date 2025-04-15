@@ -5,7 +5,7 @@ from std_msgs.msg import String, Float64  # type: ignore # This imports the Floa
 # from aiv_interfaces.msg import CPM  # Commented out CPM import
 from land_drone.utils.manageFiles import get_name_robot
 
-SEUIL_DISTANCE_OBSTACLE = 100
+SEUIL_DISTANCE_OBSTACLE = 50
 
 
 class DronePositionControl(Node):

@@ -1,7 +1,7 @@
 from time import sleep
 
-from utils.motor_lib.encoder_motor import EncoderMotor
-from utils.motor_lib.parameters import BrakingType, Direction
+from .utils.motor_lib.encoder_motor import EncoderMotor
+from .utils.motor_lib.parameters import BrakingType, Direction
 
 
 class MotorDrv:
