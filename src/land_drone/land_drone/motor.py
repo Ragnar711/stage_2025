@@ -35,7 +35,7 @@ class Motor(Node):
         # )
 
         self.subscription = self.create_subscription(
-            String, "motor_cmd", self.update_state, 10
+            String, f"{self.hostname}/motor_cmd", self.update_state, 10
         )
 
     def publish_message(self):

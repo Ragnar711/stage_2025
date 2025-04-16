@@ -10,6 +10,8 @@ def read_hosts_file():
     hosts_file = os.path.join("hosts.json")
 
     script_dir_json = land_drone_directory + "/" + hosts_file
+    
+    print(script_dir_json)
 
     with open(script_dir_json, "r") as json_file:
         address_list = json.load(json_file)

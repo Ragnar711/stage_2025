@@ -19,7 +19,7 @@ class DronePositionControl(Node):
             Float64, self.sonar_topic, self.sonar_callback, 10
         )
 
-        self.publisher = self.create_publisher(String, "motor_cmd", 10)
+        self.publisher = self.create_publisher(String, f"{self.hostname}/motor_cmd", 10)
 
         # self.publisher = self.create_publisher(CPM, 'cpm', 10)  # Commented out CPM publisher
         self.state = "Stop"
