@@ -1,108 +1,122 @@
 import rclpy  # type: ignore
 from rclpy.node import Node  # type: ignore
-from std_msgs.msg import Float64, String  # type: ignore
-from geometry_msgs.msg import Twist  # type: ignore
+from std_msgs.msg import String  # type: ignore
 from land_drone.motorDrv import MotorDrv
-from land_drone.utils.manageFiles import get_name_robot
-
-# ZERO_SPEED_VALUE = 1500
+import land_drone.utils.manageFiles as manageFiles
+import logging
 
 
 class Motor(Node):
     def __init__(self, node_name, hostname, auMotorDrv):
         super().__init__(node_name)
         self.hostname = hostname
-
-        luMsgType = String
-        self.msTopicName = f"{self.hostname}/motor_data"
-        self.muPubMotorData = self.create_publisher(luMsgType, self.msTopicName, 10)
-
-        self.timer_ = self.create_timer(1.0, self.publish_message)
         self.muMotorDrv = auMotorDrv
-        self.state = "Stop"
+        self.state = "Stop"  # Initial state
 
-        self.get_logger().info(
-            "Motor node initialised with the topic : {}".format(self.msTopicName)
-        )
-
-        # luMsgType = Twist
-        # lsTopicName = f'{self.hostname}/motor_cmd'
-        # self.muSubMotorCmd = self.create_subscription(
-        #     luMsgType,
-        #     lsTopicName,
-        #     self.motor_cmd_callback,
-        #     10
-        # )
-
+        self.motor_cmd_topic = f"{self.hostname}/motor_cmd"
         self.subscription = self.create_subscription(
-            String, f"{self.hostname}/motor_cmd", self.update_state, 10
+            String, self.motor_cmd_topic, self.motor_cmd_callback, 10
+        )
+        self.get_logger().info(
+            f"Subscribing to motor commands on: '{self.motor_cmd_topic}'"
         )
 
-    def publish_message(self):
-        # Publication dans le topic Odometrie (motor_data)
-        self.publish_state_message(self.state)
+        self.control_timer_ = self.create_timer(0.1, self.apply_motor_state)
 
+        self.get_logger().info(f"Motor node '{node_name}' initialised.")
+
+    def motor_cmd_callback(self, msg: String):
+        """Callback for receiving motor commands (e.g., 'Forward', 'Stop')."""
+        received_state = msg.data
+        if received_state != self.state:
+            self.get_logger().info(
+                f"Received motor command: '{received_state}', updating state."
+            )
+            self.state = received_state
+
+    def apply_motor_state(self):
+        """Applies the current self.state to the physical motors."""
         if self.state == "Forward":
             self.muMotorDrv.go_forward()
         elif self.state == "Backward":
             self.muMotorDrv.go_backward()
         else:
+            if self.state != "Stop":
+                self.get_logger().warning(
+                    f"Unknown motor state '{self.state}', defaulting to Stop."
+                )
+                self.state = "Stop"
             self.muMotorDrv.stop()
-
-    def publish_state_message(self, state):
-        self.get_logger().info("state motors : {}".format(self.state))
-        msg = self.create_string_message(state)
-        self.muPubMotorData.publish(msg)
-        self.get_logger().info(
-            "Message publié sur le topic {}: {}".format(self.msTopicName, self.state)
-        )
-
-    def create_string_message(self, state):
-        msg = String()
-        msg.data = self.state
-        return msg
-
-    def update_state(self, state):
-        self.state = state.data
-
-    # def motor_cmd_callback(self, msg):
-    #     lfSpeedValue = msg.linear.x
-    #     self.get_logger().info('Received motor speed cmd: {} m/s'.format(lfSpeedValue))
-
-    #     if lfSpeedValue > ZERO_SPEED_VALUE:
-    #         self.state = "Forward"
-    #     elif lfSpeedValue < ZERO_SPEED_VALUE:
-    #         self.state = "Backward"
-    #     else:
-    #         self.state = "Stop"
 
 
 def main(args=None):
     rclpy.init(args=args)
+    logger = logging.getLogger("motor_main")
 
-    node = Node(
-        "motor",
-        allow_undeclared_parameters=True,
-        automatically_declare_parameters_from_overrides=True,
-    )
+    hostname = None
+    initial_neighbors = []
+    monitor_started = False
+    motor_node = None
 
-    hostname = node.get_parameter("hostname").value  # get hostname from the launcher
-    if hostname == None:
-        hostname, _ = (
-            get_name_robot()
-        )  # get hostname from the function, because the node is running independently without the launcher
-
-    luMotorDrv = MotorDrv()
-
-    motor_node = Motor(f"{hostname}_motor", hostname, luMotorDrv)
     try:
+        hostname = manageFiles.get_robot_name()
+        logger.info(f"Starting Motor node for Robot Name: {hostname}")
+        if not hostname or hostname.startswith("robot_"):
+            logger.warning("ROBOT_NAME environment variable may not be set correctly.")
+
+        logger.info("Starting Host Monitor...")
+        monitor = manageFiles.start_host_monitor()
+        if monitor:
+            monitor_started = True
+            logger.info("Host Monitor started successfully.")
+            initial_neighbors = manageFiles.get_current_neighbors()
+            logger.info(f"Initial neighbors from server: {initial_neighbors}")
+        else:
+            logger.error(
+                "Failed to get Host Monitor instance. Neighbor discovery might fail."
+            )
+
+        luMotorDrv = MotorDrv()
+        logger.info("Motor hardware driver initialized.")
+
+        node_name = f"{hostname}_motor"
+        motor_node = Motor(node_name, hostname, luMotorDrv)
+
+        motor_node.get_logger().info(f"Node '{node_name}' starting spin...")
         rclpy.spin(motor_node)
+
     except KeyboardInterrupt:
-        pass  # Permet au programme de s'arrêter proprement si l'utilisateur appuie sur Ctrl+C
+        logger.info("KeyboardInterrupt received, initiating shutdown.")
+    except Exception as e:
+        logger.error(f"An error occurred in main: {e}", exc_info=True)
     finally:
-        motor_node.muMotorDrv.stop()  # Assurez-vous que le moteur s'arrête avant de détruire le nœud
-        motor_node.destroy_node()
-        rclpy.shutdown()
+        logger.info("Starting shutdown sequence...")
+
+        if motor_node is not None and hasattr(motor_node, "muMotorDrv"):
+            logger.info("Stopping motors...")
+            try:
+                motor_node.muMotorDrv.stop()
+                logger.info("Motors stopped.")
+            except Exception as motor_stop_e:
+                logger.error(f"Error stopping motors: {motor_stop_e}", exc_info=True)
+
+        if motor_node is not None:
+            logger.info(f"Destroying node '{motor_node.get_name()}'...")
+            motor_node.destroy_node()
+            logger.info("Node destroyed.")
+
+        if monitor_started:
+            logger.info("Stopping Host Monitor...")
+            manageFiles.stop_host_monitor()
+            logger.info("Host Monitor stopped.")
+        else:
+            logger.info("Host Monitor was not started, skipping stop.")
+
+        logger.info("Shutting down rclpy...")
+        if rclpy.ok():
+            rclpy.shutdown()
+        logger.info("rclpy shut down.")
+        logger.info("Shutdown complete.")
 
 
 if __name__ == "__main__":
