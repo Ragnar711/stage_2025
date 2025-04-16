@@ -10,7 +10,7 @@ class SonarDrv:
         self.mnTrigPin = anTrigPin  # Définit le numéro de broche GPIO pour la broche de déclenchement du capteur sonar
         self.mnEchoPin = anEchoPin  # Définit le numéro de broche GPIO pour la broche d'écho du capteur sonar
         GPIO.setmode(
-            GPIO.BCM
+            GPIO.BCM # GPIO.BOARD pour le rover
         )  # Utilisation du mode BCM pour les numéros GPIO (plus flexible)
         GPIO.setup(
             self.mnTrigPin, GPIO.OUT

@@ -2,11 +2,11 @@ class MotorDrv:
     def __init__(self, driver_type="pitop"):
         # Select which implementation to use based on driver_type
         if driver_type == "rover":
-            from .utils.motor_handlers.rover_handler import RoverHandler
+            from .motorDrvRover import RoverHandler
 
             self.handler = RoverHandler()
         else:  # Default to pitop
-            from .utils.motor_handlers.pitop_handler import PitopHandler
+            from .motorDrvPitop import PitopHandler
 
             self.handler = PitopHandler()
 

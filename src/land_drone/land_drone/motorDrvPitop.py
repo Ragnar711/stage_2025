@@ -1,5 +1,5 @@
-from ...utils.motor_lib.encoder_motor import EncoderMotor
-from ...utils.motor_lib.parameters import Direction
+from .utils.motor_lib.encoder_motor import EncoderMotor
+from .utils.motor_lib.parameters import Direction
 
 
 class PitopHandler:
