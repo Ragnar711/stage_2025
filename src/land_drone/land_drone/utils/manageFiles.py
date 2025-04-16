@@ -65,6 +65,8 @@ def get_name_robot():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     ip_address = s.getsockname()[0]
+    print(f"Detected IP address: {ip_address}")  # Debugging IP address
+
     address_list = read_hosts_file()
     name = ""
     neighbors = []
@@ -73,4 +75,9 @@ def get_name_robot():
             name = drone
         else:
             neighbors.append(drone)
+
+    print(f"Assigned name: {name}")  # Debugging assigned name
     return name, neighbors
+
+
+get_name_robot()
