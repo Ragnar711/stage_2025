@@ -12,26 +12,26 @@ RUN echo "debconf debconf/frontend select Noninteractive" | debconf-set-selectio
 
 # -y yes to all displayed questions 
 RUN apt-get update \
-        && apt-get upgrade -y \
-        && apt-get install -y apt-utils \
-        software-properties-common \
-        # Tools
-        git \
-        nodejs \ 
-        openssh-client \ 
-        # Driver lidar
-        libudev-dev \
-        libboost-all-dev \
-        # CLI editors
-        nano \
-        vim \
-        terminator \
-        # Python development headers and RPi GPIO library
-        python3-dev \
-        python3-pip \
-        python3-smbus \
-        python3-rpi.gpio \ 
-        && pip3 install adafruit-circuitpython-mcp4725 mpu6050-raspberrypi 
+    && apt-get upgrade -y \
+    && apt-get install -y apt-utils \
+    software-properties-common \
+    git \
+    nodejs \
+    openssh-client \
+    libudev-dev \
+    libboost-all-dev \
+    nano \
+    vim \
+    terminator \
+    python3-dev \
+    python3-pip \
+    python3-smbus \
+    && pip3 install \
+        RPi.GPIO \
+        adafruit-circuitpython-mcp4725 \
+        mpu6050-raspberrypi \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 
 # Set up stage_2025 workspace
 WORKDIR /home
