@@ -20,7 +20,7 @@ build_image:
         - docker build -f .devcontainer/Dockerfile -t $IMAGE_NAME .
         - docker push $IMAGE_NAME
     tags:
-        - local-deploy
+        - land_drone
     rules:
         - if: '$CI_COMMIT_BRANCH == "test"'
           when: always
@@ -36,7 +36,7 @@ deploy_image:
             docker run -itd --restart always --privileged --name stage_2025_ws $IMAGE_NAME
             EOF
     tags:
-        - local-deploy
+        - land_drone
     rules:
         - if: '$CI_COMMIT_BRANCH == "test"'
           when: always
