@@ -1,30 +1,20 @@
-import busio  # type: ignore
-import adafruit_mcp4725  # type: ignore
-import board  # type: ignore
-
-
 class MotorDrv:
-    i2c = busio.I2C(board.SCL, board.SDA)
-    motor1 = adafruit_mcp4725.MCP4725(i2c, address=0x60)
-    motor2 = adafruit_mcp4725.MCP4725(i2c, address=0x61)
+    def __init__(self, driver_type="pitop"):
+        # Select which implementation to use based on driver_type
+        if driver_type == "rover":
+            from .utils.motor_handlers.rover_handler import RoverHandler
 
-    def __init__(self):
-        pass
+            self.handler = RoverHandler()
+        else:  # Default to pitop
+            from .utils.motor_handlers.pitop_handler import PitopHandler
+
+            self.handler = PitopHandler()
 
     def go_forward(self):
-        MotorDrv.motor1.value = int((4.0 / 0.33) * 4095)
-        MotorDrv.motor2.value = int((4.0 / 0.33) * 4095)
-        state = "Forward"
-        return state
+        return self.handler.go_forward()
 
     def go_backward(self):
-        MotorDrv.motor1.value = int((1.0 / 0.33) * 4095)
-        MotorDrv.motor2.value = int((1.0 / 0.33) * 4095)
-        state = "Backward"
-        return state
+        return self.handler.go_backward()
 
     def stop(self):
-        MotorDrv.motor1.value = int((2.5 / 0.33) * 4095)
-        MotorDrv.motor2.value = int((2.5 / 0.33) * 4095)
-        state = "Stop"
-        return state
+        return self.handler.stop()

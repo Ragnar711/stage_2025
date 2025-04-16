@@ -5,7 +5,7 @@ from std_msgs.msg import String, Float64  # type: ignore # This imports the Floa
 # from aiv_interfaces.msg import CPM  # Commented out CPM import
 from land_drone.utils.manageFiles import get_name_robot
 
-SEUIL_DISTANCE_OBSTACLE = 100
+SEUIL_DISTANCE_OBSTACLE = 50
 
 
 class DronePositionControl(Node):
@@ -42,10 +42,10 @@ class DronePositionControl(Node):
 
         # cpm_msg = self.create_cpm_message(distance)  # Commented out CPM message creation
         # self.publish_cpm_message(cpm_msg)  # Commented out CPM message publishing
-        
+
     def publish_sonar_data(self, state):
         msg = String()
-        msg.data = state 
+        msg.data = state
 
         # Publish the message
         self.publisher.publish(msg)

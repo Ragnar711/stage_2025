@@ -13,7 +13,7 @@ class Sonar(Node):
         self.hostname = hostname
         self.topic_name = f"{self.hostname}/sonar_data"
         self.publisher_ = self.create_publisher(Float64, self.topic_name, 10)
-        self.timer_ = self.create_timer(1.0, self.publish_message)
+        self.timer_ = self.create_timer(0.1, self.publish_message)
         self.muSonarDrv = auSonarDrv
         self.detected_obstacle = False
         self.get_logger().info(

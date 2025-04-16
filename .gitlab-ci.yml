@@ -1,0 +1,42 @@
+image: docker:latest
+
+services:
+    - docker:dind
+
+variables:
+    DOCKER_TLS_CERTDIR: ""
+    IMAGE_NAME: registry.gitlab.com/land_drone/stage_2025/stage_2025_ws
+
+stages:
+    - build
+    - deploy
+
+before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+
+build_image:
+    stage: build
+    script:
+        - docker build -f .devcontainer/Dockerfile -t $IMAGE_NAME .
+        - docker push $IMAGE_NAME
+    tags:
+        - local-deploy
+    rules:
+        - if: '$CI_COMMIT_BRANCH == "test"'
+          when: always
+
+deploy_image:
+    stage: deploy
+    script:
+        - |
+            ssh pam-drone1@10.220.0.12 <<EOF
+            docker pull $IMAGE_NAME
+            docker stop stage_2025_ws || true
+            docker rm stage_2025_ws || true
+            docker run -itd --restart always --privileged --name stage_2025_ws $IMAGE_NAME
+            EOF
+    tags:
+        - local-deploy
+    rules:
+        - if: '$CI_COMMIT_BRANCH == "test"'
+          when: always

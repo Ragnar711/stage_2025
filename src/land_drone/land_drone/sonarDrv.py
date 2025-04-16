@@ -9,45 +9,47 @@ class SonarDrv:
     def __init__(self, anTrigPin, anEchoPin):
         self.mnTrigPin = anTrigPin  # Définit le numéro de broche GPIO pour la broche de déclenchement du capteur sonar
         self.mnEchoPin = anEchoPin  # Définit le numéro de broche GPIO pour la broche d'écho du capteur sonar
-        GPIO.setmode(GPIO.BCM)  # Utilisation du mode BCM pour les numéros GPIO (plus flexible)
-        GPIO.setup(self.mnTrigPin, GPIO.OUT)  # Configure la broche de déclenchement en tant que broche de sortie
-        GPIO.setup(self.mnEchoPin, GPIO.IN)  # Configure la broche d'écho en tant que broche d'entrée
+        GPIO.setmode(
+            GPIO.BCM
+        )  # Utilisation du mode BCM pour les numéros GPIO (plus flexible)
+        GPIO.setup(
+            self.mnTrigPin, GPIO.OUT
+        )  # Configure la broche de déclenchement en tant que broche de sortie
+        GPIO.setup(
+            self.mnEchoPin, GPIO.IN
+        )  # Configure la broche d'écho en tant que broche d'entrée
 
+        print("Waiting for sensor to stabilize (initialization)...")
+        GPIO.output(self.mnTrigPin, False)
+        time.sleep(
+            0.5
+        )  # Reduce stabilization time significantly, test if 0.5s is enough, maybe less? Or remove entirely if not needed after power-on.
+        print("Sensor stabilized.")
 
     def get_distance(self):
-        GPIO.output(
-            self.mnTrigPin, False
-        )  # Définit la broche de déclenchement à basse tension (0V) initialement
-        print("En attente de stabilisation du capteur")
-        time.sleep(
-            2
-        )  # Attend pendant 2 secondes pour permettre au capteur de se stabiliser
+        GPIO.output(self.mnTrigPin, False)  # Set the TRIG pin to LOW
+        time.sleep(0.01)
 
-        GPIO.output(
-            self.mnTrigPin, True
-        )  # Définit la broche de déclenchement à haute tension (3,3V)
-        time.sleep(0.00001)  # Attend pendant une très courte durée
-        GPIO.output(
-            self.mnTrigPin, False
-        )  # Remet la broche de déclenchement à basse tension (0V)
+        GPIO.output(self.mnTrigPin, True)  # Send a pulse to trigger the sensor
+        time.sleep(0.00001)  # Wait for a very short time
+        GPIO.output(self.mnTrigPin, False)  # Set the TRIG pin back to LOW
 
-        while (
-            GPIO.input(self.mnEchoPin) == 0
-        ):  # Attend que la broche d'écho devienne haute (3,3V)
-            pulse_start = time.time()  # Enregistre le moment de début de l'impulsion
+        pulse_start = pulse_end = 0  # Initialize variables
 
-        while (
-            GPIO.input(self.mnEchoPin) == 1
-        ):  # Attend que la broche d'écho redevienne basse (0V)
-            pulse_end = time.time()  # Enregistre le moment de fin de l'impulsion
+        while GPIO.input(self.mnEchoPin) == 0:  # Wait for the echo pin to go HIGH
+            pulse_start = time.time()  # Record the start time if it transitions to HIGH
 
-        pulse_duration = pulse_end - pulse_start  # Calcule la durée de l'impulsion
-        distance = (
-            pulse_duration * 17150
-        )  # Calcule la distance en fonction de la durée de l'impulsion et de la vitesse du son
-        distance = round(distance, 2)  # Arrondit la distance à 2 décimales
-        print(
-            "Distance :", distance, "cm"
-        )  # Affiche la distance mesurée en centimètres
+        while GPIO.input(self.mnEchoPin) == 1:  # Wait for the echo pin to go LOW
+            pulse_end = time.time()  # Record the end time when it goes LOW
 
-        return distance  # Renvoie la distance mesurée
+        if (
+            pulse_start and pulse_end
+        ):  # Ensure both pulse_start and pulse_end have been set
+            pulse_duration = pulse_end - pulse_start  # Calculate pulse duration
+            distance = pulse_duration * 17150  # Calculate distance
+            distance = round(distance, 2)  # Round the distance to 2 decimal places
+            print(f"Distance: {distance} cm")  # Print the measured distance
+            return distance
+        else:
+            print("Error: Echo signal not received properly.")
+            return 51.0  # Return 51 if the echo signal was not detected properly

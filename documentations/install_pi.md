@@ -2,23 +2,23 @@
 
 ## Flash Sd card
 
-- Flash the sd card with Ubuntu 20.04 
+- Flash the sd card with Ubuntu 20.04
 - Connect the raspberry pi with mini hdmi/hdmi cable to a monitor
-- Connect a keyboard 
+- Connect a keyboard
 - Power on the rasperry pi
 
-## Configure the Wifi 
+## Configure the Wifi
 
-Set up: https://ubuntu.com/tutorials/how-to-install-ubuntu-on-your-raspberry-pi#4-boot-ubuntu-server 
+Set up: <https://ubuntu.com/tutorials/how-to-install-ubuntu-on-your-raspberry-pi#4-boot-ubuntu-server>
 
 - `sudo nano /etc/netplan/50-cloud-init.yaml`
 - Configure the Wifi with the name of the network and password
 - `sudo netplan apply`
-- `sudo reboot` 
+- `sudo reboot`
 
 To know the ip of the robot: `ip a`
 
-## Connect with ssh 
+## Connect with ssh
 
 - `ssh ip_adress`
 - Connect with username and password
@@ -27,23 +27,23 @@ To know the ip of the robot: `ip a`
 
 ## Install Docker
 
-- Set up: https://omar2cloud.github.io/rasp/rpidock/
+- Set up: <https://omar2cloud.github.io/rasp/rpidock/>
 - `sudo usermod -a -G docker $USER`
 - reboot
 
 ## Copy Dockerfile
 
-
 - Create a folder *stage_2025* in Documents: `mkdir stage_2025`
 - Open Folders with the GUI Application
-    - Other locations
-    - `sftp://ip_adress/`
-- Copy the Dockerfile on the folder *stage_2025* 
+  - Other locations
+  - `sftp://ip_adress/`
+- Copy the Dockerfile on the folder *stage_2025*
 
 ## Build and Run the container
 
-In the raspberry (via ssh): 
+In the raspberry (via ssh):
+
 - `cd Documents\stage_2025`
 - `docker build -t "name_image"` .
-- `docker run -it --privileged --network="host" --name "name_container" "name_image"`
+- `docker run -itd --restart always --privileged --network="host" --name "name_container" "name_image"`
 - To run bash terminal of the container in an other tab terminal: `docker exec -it "name_container" bash`
