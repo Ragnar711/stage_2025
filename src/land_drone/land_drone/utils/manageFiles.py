@@ -11,7 +11,7 @@ from sseclient import SSEClient  # pip install sseclient-py
 # --- Client Configuration ---
 HOSTS_SERVER_URL = os.environ.get("HOSTS_SERVER_URL", "http://10.220.0.12:5000")
 ROBOT_NAME = os.environ.get(
-    "ROBOT_NAME", f"robot_{int(time.time())}"
+    "ROBOT_NAME", "Pitop"
 )  # Default to somewhat unique name
 REQUEST_TIMEOUT = 10  # Seconds for normal HTTP requests
 HEARTBEAT_INTERVAL = 30  # Seconds between sending heartbeats
