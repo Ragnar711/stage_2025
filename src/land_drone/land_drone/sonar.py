@@ -50,22 +50,24 @@ class Sonar(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-
-    node = Node(
-        "sonar",
-        allow_undeclared_parameters=True,
-        automatically_declare_parameters_from_overrides=True,
-    )
-    hostname = node.get_parameter("hostname").value  # get hostname from the launcher
-    if hostname == None:
-        hostname, _ = (
-            get_name_robot()
-        )  # get hostname from the function, because the node is running independently without the launcher
+    hostname = None
+    initial_neighbors = []
+    monitor_started = False
+    sonar_node = None
+    
+    try:
+        hostname = manageFiles.get_robot_name()
+        
+        monitor = manageFiles.start_host_monitor()
+        
+        if monitor:
+            monitor_started = True
+            initial_neighbors = manageFiles.get_current_neighbors()
 
     luSonarDrv = SonarDrv(SonarDrv.TRIG_PIN, SonarDrv.ECHO_PIN)
-    # luSonarDrv = SonarDrv()
-
-    sonar_node = Sonar(f"{hostname}_sonar", hostname, luSonarDrv)
+    
+    node_name = f"{hostname}_sonar"
+    sonar_node = Sonar(node_name, hostname, luSonarDrv)
     rclpy.spin(sonar_node)
     sonar_node.destroy_node()
     rclpy.shutdown()
