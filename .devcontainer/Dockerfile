@@ -30,6 +30,8 @@ RUN apt-get update \
         RPi.GPIO \
         adafruit-circuitpython-mcp4725 \
         mpu6050-raspberrypi \
+        smbus2 \
+        pandas \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 

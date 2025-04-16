@@ -10,7 +10,7 @@ def read_hosts_file():
     hosts_file = os.path.join("hosts.json")
 
     script_dir_json = land_drone_directory + "/" + hosts_file
-    
+
     print(script_dir_json)
 
     with open(script_dir_json, "r") as json_file:
@@ -67,7 +67,6 @@ def get_name_robot():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     ip_address = s.getsockname()[0]
-    print(f"Detected IP address: {ip_address}")  # Debugging IP address
 
     address_list = read_hosts_file()
     name = ""
@@ -78,8 +77,4 @@ def get_name_robot():
         else:
             neighbors.append(drone)
 
-    print(f"Assigned name: {name}")  # Debugging assigned name
     return name, neighbors
-
-
-get_name_robot()
