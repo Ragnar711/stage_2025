@@ -1,13 +1,13 @@
 import socket
 import json
 import os
-import pandas as pd  # type: ignore # Part of unrelated utilities
+import pandas as pd  # type: ignore
 import requests
 import logging
 import time
 import threading
 import atexit
-from sseclient import SSEClient  # pip install sseclient-py
+from sseclient import SSEClient  # type: ignore
 
 # --- Client Configuration ---
 # Use environment variables with defaults

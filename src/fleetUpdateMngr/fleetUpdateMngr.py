@@ -1,15 +1,16 @@
-from flask import Flask, request, jsonify, Response, stream_with_context
+from flask import Flask, request, jsonify, Response, stream_with_context  # type: ignore
 import json
 import os
 import logging
 import time
 import threading
 from queue import Queue, Empty
-from copy import deepcopy
 import atexit
 
 # --- Configuration ---
-HOST_FILE_PATH = "hosts.json"  # Persistent storage {ip: name}
+HOST_FILE_PATH = os.path.join(
+    os.path.dirname(__file__), "hosts.json"
+)  # Persistent storage {ip: name}
 SERVER_HOST = "0.0.0.0"
 SERVER_PORT = 5000
 HEARTBEAT_TIMEOUT = 90  # Seconds before considering a robot disconnected
@@ -56,7 +57,7 @@ def load_hosts_from_file():
         with open(HOST_FILE_PATH, "r") as f:
             content = f.read()
             loaded_hosts = json.loads(content) if content else {}
-    except (json.JSONDecodeError, FileNotFoundError, Exception) as e:
+    except Exception as e:
         logger.error(f"Error loading hosts file {HOST_FILE_PATH}: {e}. Starting empty.")
         loaded_hosts = {}
 
@@ -365,7 +366,7 @@ if __name__ == "__main__":
     # Use Waitress or Gunicorn for production
     # app.run(host=SERVER_HOST, port=SERVER_PORT, debug=False, threaded=True)
     # Using waitress for demonstration (pip install waitress)
-    from waitress import serve
+    from waitress import serve  # type: ignore
 
     serve(app, host=SERVER_HOST, port=SERVER_PORT, threads=8)  # Example with waitress
 
