@@ -2,7 +2,7 @@ from .utils.motor_lib.encoder_motor import EncoderMotor
 from .utils.motor_lib.parameters import Direction
 
 
-class PitopHandler:
+class MotorDrvPitop:
     def __init__(self, rpm_speed=100):
         self.motor1 = EncoderMotor("M0", Direction.BACK)
         self.motor2 = EncoderMotor("M3", Direction.BACK)
